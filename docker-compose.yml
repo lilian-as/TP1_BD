@@ -1,0 +1,42 @@
+version: '3.9'
+services:
+  db:
+    image: postgres:15
+    container_name: tp1_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ecommerce
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ecommerce"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build: .
+    container_name: tp1_app
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_HOST: db
+      DB_PORT: "5432"
+      DB_NAME: ecommerce
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+    working_dir: /app
+    volumes:
+      - ./data:/data:ro
+      - ./src:/app/src:ro
+      - ./sql:/app/sql:ro
+    ports:
+      - "8000:8000"
+    command: ["python", "src/dashboard.py"]
+
+volumes:
+  db_data:
