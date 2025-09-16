@@ -4,20 +4,70 @@ import time
 
 def conecta():
     tempo_inicio = time.time()
-
+    conexao = None
     try:
         db_host = sys.argv[sys.argv.index('--db-host')+1]
         db_port = sys.argv[sys.argv.index('--db-port')+1]
         db_name = sys.argv[sys.argv.index('--db-name')+1]
         db_user = sys.argv[sys.argv.index('--db-user')+1]
         db_pass = sys.argv[sys.argv.index('--db-pass')+1]
-        psycopg.connect(f"host={db_host} port={db_port} dbname={db_name} user={db_user} password={db_pass}")
+        conexao = psycopg.connect(f"host={db_host} port={db_port} dbname={db_name} user={db_user} password={db_pass}")
     except:
         print("Erro")
-        return 1
+        return conexao, 1
     
     print("Tempo para conexão:", time.time() - tempo_inicio,"seg")
-    return 0
+    return conexao, 0
+
+def criaTabelas(conexao):
+    cur = conexao.cursor()
+    cur.execute("""CREATE TABLE Category(
+                cat_id INT PRIMARY KEY,
+                car_nome VARCHAR(100),
+                pcat_id INT,
+                pcat_nome VARCHAR(100)
+                );
+                """)
+
+    cur.execute("""CREATE TABLE Product(
+                ASIN CHAR(10) PRIMARY KEY,
+                title VARCHAR(100),
+                p_group VARCHAR(5),
+                salesrank INT,
+                id_final_cat INT REFERENCES Category(cat_id)
+                );
+                """)
+    
+    cur.execute("""CREATE TABLE Similar_Product(
+                PASIN CHAR(10) PRIMARY KEY REFERENCES Product(ASIN),
+                ASIN_SIM CHAR(10)
+                );
+                """)
+    
+    cur.execute("""CREATE TABLE Statistics(
+                ASIN CHAR(10) REFERENCES Product(ASIN),
+                id INT,
+                similar_p INT,
+                categories INT,
+                reviews INT,
+                downloads INT,
+                avg_rating INT,
+                PRIMARY KEY (ASIN, id)
+                );
+                """)
+    
+    cur.execute("""CREATE TABLE Review(
+                ASIN CHAR(10) REFERENCES Product(ASIN),
+                cutomer CHAR(14),
+                date DATE,
+                rating SMALLINT,
+                votes INT,
+                helpful INT,
+                PRIMARY KEY (ASIN, cutomer),
+                CHECK (rating > 0 AND rating <= 5)
+                );
+                """)
 
 arq_i = sys.argv[sys.argv.index('--input')+1]
-conecta()
+conexao, status = conecta()
+criaTabelas(conexao)
