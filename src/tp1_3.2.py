@@ -19,8 +19,23 @@ def conecta():
     print("Tempo para conexão:", time.time() - tempo_inicio,"seg")
     return conexao, 0
 
-def criaTabelas(conexao):
-    cur = conexao.cursor()
+def criaTabelas(cur):
+
+    #Criando tabelas de acordo com o esquema
+
+    cur.execute("""CREATE TABLE Product(
+                ASIN CHAR(10) PRIMARY KEY,
+                title VARCHAR(100),
+                p_group VARCHAR(5),
+                salesrank INT,
+                similar INT, 
+                categories INT,
+                reviews INT,
+                downloads INT,
+                avg_rating INT,
+                );
+                """)
+    
     cur.execute("""CREATE TABLE Category(
                 cat_id INT PRIMARY KEY,
                 car_nome VARCHAR(100),
@@ -28,12 +43,9 @@ def criaTabelas(conexao):
                 pcat_nome VARCHAR(100)
                 );
                 """)
-
-    cur.execute("""CREATE TABLE Product(
-                ASIN CHAR(10) PRIMARY KEY,
-                title VARCHAR(100),
-                p_group VARCHAR(5),
-                salesrank INT,
+    
+    cur.execute("""CREATE TABLE Product_cat(
+                ASIN CHAR(10) PRIMARY KEY REFERENCES Product(ASIN),
                 id_final_cat INT REFERENCES Category(cat_id)
                 );
                 """)
@@ -44,15 +56,9 @@ def criaTabelas(conexao):
                 );
                 """)
     
-    cur.execute("""CREATE TABLE Statistics(
-                ASIN CHAR(10) REFERENCES Product(ASIN),
-                id INT,
-                similar_p INT,
-                categories INT,
-                reviews INT,
-                downloads INT,
-                avg_rating INT,
-                PRIMARY KEY (ASIN, id)
+    cur.execute("""CREATE TABLE Product_id(
+                ASIN CHAR(10) PRIMARY KEY REFERENCES Product(ASIN),
+                id INT NOT NULL
                 );
                 """)
     
@@ -69,5 +75,10 @@ def criaTabelas(conexao):
                 """)
 
 arq_i = sys.argv[sys.argv.index('--input')+1]
+
+#Estabelece a conexão com o postgreSQL
 conexao, status = conecta()
-criaTabelas(conexao)
+cursor = conexao.cursor()
+
+#Criando tabelas
+criaTabelas(cursor)
