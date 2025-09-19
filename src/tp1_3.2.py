@@ -1,84 +1,102 @@
 import sys
 import psycopg
 import time
-
-def conecta():
-    tempo_inicio = time.time()
-    conexao = None
-    try:
-        db_host = sys.argv[sys.argv.index('--db-host')+1]
-        db_port = sys.argv[sys.argv.index('--db-port')+1]
-        db_name = sys.argv[sys.argv.index('--db-name')+1]
-        db_user = sys.argv[sys.argv.index('--db-user')+1]
-        db_pass = sys.argv[sys.argv.index('--db-pass')+1]
-        conexao = psycopg.connect(f"host={db_host} port={db_port} dbname={db_name} user={db_user} password={db_pass}")
-    except:
-        print("Erro")
-        return conexao, 1
-    
-    print("Tempo para conexão:", time.time() - tempo_inicio,"seg")
-    return conexao, 0
+import pandas as pd
+from db import *
 
 def criaTabelas(cur):
-
+    tempo_inicio = time.time()
     #Criando tabelas de acordo com o esquema
 
-    cur.execute("""CREATE TABLE Product(
-                ASIN CHAR(10) PRIMARY KEY,
-                title VARCHAR(100),
-                p_group VARCHAR(5),
-                salesrank INT,
-                similar INT, 
-                categories INT,
-                reviews INT,
-                downloads INT,
-                avg_rating INT,
-                );
-                """)
+    comando = [
+        """
+        CREATE DOMAIN PRODUCT_GROUP AS VARCHAR(5) CHECK(value IN ('Book', 'DVD', 'Video', 'Music'));
+        """,
+        """CREATE TABLE PRODUCT(
+        ASIN CHAR(10) PRIMARY KEY,
+        title VARCHAR(100),
+        p_group PRODUCT_GROUP,
+        salesrank INT,
+        similar INT,
+        categories INT,
+        reviews INT,
+        downloads INT,
+        avg_rating INT
+        );
+        """,
+        """CREATE TABLE CATEGORY(
+        cat_id INT PRIMARY KEY,
+        car_nome VARCHAR(100),
+        pcat_id INT,
+        pcat_nome VARCHAR(100)
+        );
+        """,
+        """CREATE TABLE PRODUCT_CAT(
+        ASIN CHAR(10) PRIMARY KEY REFERENCES PRODUCT(ASIN),
+        id_final_cat INT REFERENCES CATEGORY(cat_id)
+        );
+        """,
+        """CREATE TABLE SIMILAR_PRODUCT(
+        PASIN CHAR(10) PRIMARY KEY REFERENCES PRODUCT(ASIN),
+        ASIN_SIM CHAR(10)
+        );
+        """,
+        """CREATE TABLE PRODUCT_ID(
+        ASIN CHAR(10) PRIMARY KEY REFERENCES PRODUCT(ASIN),
+        id INT NOT NULL
+        );
+        """,
+        """CREATE TABLE REVIEW(
+        ASIN CHAR(10) REFERENCES PRODUCT(ASIN),
+        cutomer CHAR(14),
+        date DATE,
+        rating SMALLINT,
+        votes INT,
+        helpful INT,
+        PRIMARY KEY (ASIN, cutomer),
+        CHECK (rating > 0 AND rating <= 5)
+        );
+        """
+    ]
+    try:
+        for com in comando:
+            cur.execute(com)
+        print("Tempo para criar o esquema:", time.time() - tempo_inicio,"seg")
+    except (psycopg.DatabaseError, Exception) as erro:
+        print("Não foi possível criar o esquema.", erro)
+        return 1
     
-    cur.execute("""CREATE TABLE Category(
-                cat_id INT PRIMARY KEY,
-                car_nome VARCHAR(100),
-                pcat_id INT,
-                pcat_nome VARCHAR(100)
-                );
-                """)
-    
-    cur.execute("""CREATE TABLE Product_cat(
-                ASIN CHAR(10) PRIMARY KEY REFERENCES Product(ASIN),
-                id_final_cat INT REFERENCES Category(cat_id)
-                );
-                """)
-    
-    cur.execute("""CREATE TABLE Similar_Product(
-                PASIN CHAR(10) PRIMARY KEY REFERENCES Product(ASIN),
-                ASIN_SIM CHAR(10)
-                );
-                """)
-    
-    cur.execute("""CREATE TABLE Product_id(
-                ASIN CHAR(10) PRIMARY KEY REFERENCES Product(ASIN),
-                id INT NOT NULL
-                );
-                """)
-    
-    cur.execute("""CREATE TABLE Review(
-                ASIN CHAR(10) REFERENCES Product(ASIN),
-                cutomer CHAR(14),
-                date DATE,
-                rating SMALLINT,
-                votes INT,
-                helpful INT,
-                PRIMARY KEY (ASIN, cutomer),
-                CHECK (rating > 0 AND rating <= 5)
-                );
-                """)
+    return 0
 
-arq_i = sys.argv[sys.argv.index('--input')+1]
+def lerEntrada():
+    tempo_inicio = time.time()
+    try:
+        arq_i = sys.argv[sys.argv.index('--input')+1]
+
+        print("Tempo para povoar o esquema:", time.time() - tempo_inicio,"seg")
+
+    except ValueError as erro:
+        print("Erro na passagem de parâmetros.", erro)
+    
+    except:
+        print("Não foi possível povoar o esquema.")
 
 #Estabelece a conexão com o postgreSQL
-conexao, status = conecta()
+conexao = conecta()
+
+if conexao == None:
+    sys.exit(1)
+
 cursor = conexao.cursor()
 
-#Criando tabelas
+#Criando o esquema e povoando
 criaTabelas(cursor)
+
+
+#Mostrando pra ver se deu certo
+
+
+#Encerra conexão
+desconecta_cursor(cursor)
+desconecta(conexao)
+sys.exit(0)
