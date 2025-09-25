@@ -14,7 +14,7 @@ def parse_args():
     parser.add_argument('--input')
     return parser.parse_args()
 
-def criaTabelas(cur):
+def criaTabelas(cur, conexao):
     tempo_inicio = time.time()
     #Criando tabelas de acordo com o esquema
 
@@ -71,6 +71,7 @@ def criaTabelas(cur):
     try:
         for com in comando:
             cur.execute(com)
+        conexao.commit()
         print(f"Tempo para criar o esquema: {time.time() - tempo_inicio:.3f} seg")
         return 0
     except (psycopg.DatabaseError, Exception) as erro:
@@ -88,7 +89,7 @@ def lerEntrada(arq_i):
         print("Não foi possível ler o arquivo.", erro)
     return linhas
 
-def copy_csv(cur, tabela, inserts, arq, cats_lidas):
+def copy_csv(cur, conexao, tabela, inserts, arq, cats_lidas):
     nome_arq = arq
     with open(nome_arq, 'w') as arq:
         for i in inserts:
@@ -101,10 +102,14 @@ def copy_csv(cur, tabela, inserts, arq, cats_lidas):
         with open(nome_arq, 'r') as arq:
             with cur.copy(f"COPY {tabela} FROM STDIN WITH (FORMAT csv, NULL 'NULL');") as copy:
                 copy.write(arq.read())
+        conexao.commit()
     except (psycopg.DatabaseError, Exception) as erro:
         print(f"Não foi possível preencher relação {tabela}.", erro)
+        desconecta_cursor(cursor)
+        desconecta(conexao)
+        sys.exit(1)
 
-def povoaRelacoes(cur, linhas):
+def povoaRelacoes(cur, conexao, linhas):
     tempo_inicio = time.time()
     nlinhas = 0
     csv_produto = []
@@ -181,27 +186,28 @@ def povoaRelacoes(cur, linhas):
             nlinhas += 1
             if nlinhas % 1000000 == 0:
                 print(f"{nlinhas} linhas processadas.")
-                copy_csv(cur, "PRODUCT", csv_produto, "/app/out/tabela_product.csv", cats_lidas)
+                copy_csv(cur, conexao, "PRODUCT", csv_produto, "/app/out/tabela_product.csv", cats_lidas)
                 csv_produto = []
-                copy_csv(cur, "PRODUCT_INFO", csv_prodinfo, "/app/out/tabela_product_info.csv", cats_lidas)
+                copy_csv(cur, conexao, "PRODUCT_INFO", csv_prodinfo, "/app/out/tabela_product_info.csv", cats_lidas)
                 csv_prodinfo = []
-                copy_csv(cur, "SIMILAR_PRODUCT", csv_similar, "/app/out/tabela_similar_product.csv", cats_lidas)
+                copy_csv(cur, conexao, "SIMILAR_PRODUCT", csv_similar, "/app/out/tabela_similar_product.csv", cats_lidas)
                 csv_similar = []
-                copy_csv(cur, "CATEGORY", csv_category, "/app/out/tabela_category.csv", cats_lidas)
+                copy_csv(cur, conexao, "CATEGORY", csv_category, "/app/out/tabela_category.csv", cats_lidas)
                 csv_category = []
-                copy_csv(cur, "PRODUCT_CAT", csv_prodcat, "/app/out/tabela_prodcat.csv", cats_lidas)
+                copy_csv(cur, conexao, "PRODUCT_CAT", csv_prodcat, "/app/out/tabela_prodcat.csv", cats_lidas)
                 csv_prodcat = []
-                copy_csv(cur, "REVIEW", csv_review, "/app/out/tabela_review.csv", cats_lidas)
+                copy_csv(cur, conexao, "REVIEW", csv_review, "/app/out/tabela_review.csv", cats_lidas)
                 csv_review = []
             
         print(f"{nlinhas} linhas processadas.")
-        copy_csv(cur, "PRODUCT", csv_produto, "/app/out/tabela_product.csv", cats_lidas)
-        copy_csv(cur, "PRODUCT_INFO", csv_prodinfo, "/app/out/tabela_product_info.csv", cats_lidas)
-        copy_csv(cur, "SIMILAR_PRODUCT", csv_similar, "/app/out/tabela_similar_product.csv", cats_lidas)
-        copy_csv(cur, "CATEGORY", csv_category, "/app/out/tabela_category.csv", cats_lidas)
-        copy_csv(cur, "PRODUCT_CAT", csv_prodcat, "/app/out/tabela_prodcat.csv", cats_lidas)
-        copy_csv(cur, "REVIEW", csv_review, "/app/out/tabela_review.csv", cats_lidas)
+        copy_csv(cur, conexao, "PRODUCT", csv_produto, "/app/out/tabela_product.csv", cats_lidas)
+        copy_csv(cur, conexao, "PRODUCT_INFO", csv_prodinfo, "/app/out/tabela_product_info.csv", cats_lidas)
+        copy_csv(cur, conexao, "SIMILAR_PRODUCT", csv_similar, "/app/out/tabela_similar_product.csv", cats_lidas)
+        copy_csv(cur, conexao, "CATEGORY", csv_category, "/app/out/tabela_category.csv", cats_lidas)
+        copy_csv(cur, conexao, "PRODUCT_CAT", csv_prodcat, "/app/out/tabela_prodcat.csv", cats_lidas)
+        copy_csv(cur, conexao, "REVIEW", csv_review, "/app/out/tabela_review.csv", cats_lidas)
 
+        conexao.commit()
         print(f"Tempo para povoar relações: {time.time() - tempo_inicio:.3f} seg")
         return 0
     except (psycopg.DatabaseError, Exception) as erro:
@@ -217,10 +223,10 @@ if conexao == None:
 cursor = conexao.cursor()
 
 #Criando o esquema e povoando
-status = criaTabelas(cursor)
+status = criaTabelas(cursor, conexao)
 if status == 0:
     entrada = lerEntrada(args.input)
-    status = povoaRelacoes(cursor, entrada)
+    status = povoaRelacoes(cursor, conexao, entrada)
 
 #Encerra conexão
 desconecta_cursor(cursor)

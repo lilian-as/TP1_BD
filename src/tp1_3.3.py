@@ -16,7 +16,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def fazer_consulta1(cursor, pid, pasta):
+def fazer_consulta1(cursor, conexao, pid, pasta):
     print("Q1 - Dado um produto, liste Top 5 comentarios mais uteis e com maior avaliação e os 5 comentarios mais uteis e com menor avaliação:\n")
 
     try:
@@ -25,32 +25,32 @@ def fazer_consulta1(cursor, pid, pasta):
         comando1 = f"""
             SELECT * FROM REVIEW
             WHERE Pid= {pid} AND rating= 5 
-            ORDER BY helpul DESC 
+            ORDER BY helpful DESC 
             LIMIT 5 
         """
         cursor.execute(comando1)
         print("Top 5 comentarios mais uteis com maior avaliacao:\n", cursor.fetchall())
         if pasta:
-            guardaOutput(cursor, comando1, f"{pasta}/q1_top5_reviews_pos.csv")
+            guardaOutput(cursor, conexao, comando1, f"{pasta}/q1_top5_reviews_pos.csv")
 
         #top 5 com menor avaliação
         #selecionando todos os dados da tabela REVIEW, juntando com a tabela PRODUCT para pegar o Pid, onde o Pid é igual ao dado e a avaliação é 1, ordenando por comentarios uteis de maneira decrescente, limite de 5 comentarios
         comando2 = f"""
             SELECT * FROM REVIEW 
             WHERE Pid= {pid} AND rating= 1 
-            ORDER BY helpul DESC
+            ORDER BY helpful DESC
             LIMIT 5
         """
         cursor.execute(comando2)
         print("\nTop 5 comentarios mais uteis com menor avaliacao:\n", cursor.fetchall())
         if pasta:
-            guardaOutput(cursor, comando2, f"{pasta}/q1_top5_reviews_neg.csv")
+            guardaOutput(cursor, conexao, comando2, f"{pasta}/q1_top5_reviews_neg.csv")
 
     except (psycopg.DatabaseError, Exception) as erro:
         print("Não foi possível realizar a consulta.", erro)
 
 
-def fazer_consulta2(cursor, pid, pasta):
+def fazer_consulta2(cursor, conexao, pid, pasta):
     print("Q2 - Dado um produto, listar os produtos similares com maiores vendas (melhor salesrank) do que ele.\n")
 
     try:
@@ -66,12 +66,12 @@ def fazer_consulta2(cursor, pid, pasta):
         for row in cursor.fetchall():
             print(row)
         if pasta:
-            guardaOutput(cursor, comando, f"{pasta}/q2_top_similar_salesrank.csv")
+            guardaOutput(cursor, conexao, comando, f"{pasta}/q2_top_similar_salesrank.csv")
     except (psycopg.DatabaseError, Exception) as erro:
         print("Não foi possível realizar a consulta.", erro)
 
 
-def fazer_consulta3(cursor,pid, pasta):
+def fazer_consulta3(cursor, conexao, pid, pasta):
     print("Q3 - Dado um produto, mostre a evolução diária das médias de avaliação ao longo do período coberto no arquivo\n")
 
     try:
@@ -86,12 +86,12 @@ def fazer_consulta3(cursor,pid, pasta):
         for row in cursor.fetchall():
             print(f"Data: {row[0]} | Média: {row[1]:.2f}")
         if pasta:
-            guardaOutput(cursor, comando, f"{pasta}/q3_avg_evolution.csv")
+            guardaOutput(cursor, conexao, comando, f"{pasta}/q3_avg_evolution.csv")
     except (psycopg.DatabaseError, Exception) as erro:
         print("Não foi possível realizar a consulta.", erro)
 
 
-def fazer_consulta4(cursor, pasta):
+def fazer_consulta4(cursor, conexao, pasta):
     print("Q4 - Listar os 10 produtos líderes de venda em cada grupo de produtos.\n")
 
     try:
@@ -108,12 +108,12 @@ def fazer_consulta4(cursor, pasta):
         for row in cursor.fetchall():
             print(row)
         if pasta:
-            guardaOutput(cursor, comando, f"{pasta}/q4_top10_salesrank.csv")
+            guardaOutput(cursor, conexao, comando, f"{pasta}/q4_top10_salesrank.csv")
     except (psycopg.DatabaseError, Exception) as erro:
         print("Não foi possível realizar a consulta.", erro)
 
 
-def fazer_consulta5(cursor, pasta):
+def fazer_consulta5(cursor, conexao, pasta):
     print('Q5 -Listar os 10 produtos com a maior média de avaliações úteis positivas por produto\n')
 
     try:
@@ -129,12 +129,12 @@ def fazer_consulta5(cursor, pasta):
         for row in cursor.fetchall():
             print(row)
         if pasta:
-            guardaOutput(cursor, comando, f"{pasta}/q5_top10_avg_review_pos.csv")
+            guardaOutput(cursor, conexao, comando, f"{pasta}/q5_top10_avg_review_pos.csv")
     except (psycopg.DatabaseError, Exception) as erro:
         print("Não foi possível realizar a consulta.", erro)
 
 
-def fazer_consulta6(cursor, pasta):
+def fazer_consulta6(cursor, conexao, pasta):
     print("Q6 - Listar as 5 categorias com a maior média de avaliações úteis positivas por produto\n")
     
     try:
@@ -151,12 +151,12 @@ def fazer_consulta6(cursor, pasta):
         for row in cursor.fetchall():
             print(row)
         if pasta:
-            guardaOutput(cursor, comando, f"{pasta}/q6_top5_categories_avg_reviews_pos.csv")
+            guardaOutput(cursor, conexao, comando, f"{pasta}/q6_top5_categories_avg_reviews_pos.csv")
     except (psycopg.DatabaseError, Exception) as erro:
         print("Não foi possível realizar a consulta.", erro)
 
 
-def fazer_consulta7(cursor, pasta):
+def fazer_consulta7(cursor, conexao, pasta):
     print("Q7 - Listar os 10 clientes que mais fizeram comentários por grupo de produto\n")
 
     try:
@@ -174,14 +174,14 @@ def fazer_consulta7(cursor, pasta):
         for row in cursor.fetchall():
             print(row)
         if pasta:
-            guardaOutput(cursor, comando, f"{pasta}/q7_top10_customer_reviews_pos.csv")
+            guardaOutput(cursor, conexao, comando, f"{pasta}/q7_top10_customer_reviews_pos.csv")
     except (psycopg.DatabaseError, Exception) as erro:
         print("Não foi possível realizar a consulta.", erro)
 
-def guardaOutput(cur, arq, consulta):
+def guardaOutput(cur, conexao, consulta, arq):
     try:
-        with open(arq, 'w') as arq:
-            with cur.copy(f"COPY {consulta} TO STDOUT WITH (FORMAT csv, NULL 'NULL');") as copy:
+        with open(arq, 'wb') as arq:
+            with cur.copy(f"COPY ({consulta}) TO STDOUT WITH (FORMAT csv, NULL 'NULL');") as copy:
                 for tuplas in copy:
                     arq.write(tuplas)
         print("Resultado da consulta salvo.")
@@ -189,6 +189,8 @@ def guardaOutput(cur, arq, consulta):
     except (psycopg.DatabaseError, Exception) as erro:
         print("Não foi possível salvar resultado da consulta.", erro)
         desconecta_cursor(cur)
+        desconecta(conexao)
+        sys.exit(1)
 
 def main():
     args= parse_args()
@@ -213,21 +215,21 @@ def main():
     if args.consulta:
         if args.consulta == 1:
             asin= input("Digite o Pid do produto desejado: ")
-            fazer_consulta1(cursor, asin, pasta_output)
+            fazer_consulta1(cursor, conexao, asin, pasta_output)
         elif args.consulta == 2:
             pasin= input("Digite o Pid do produto desejado: ")
-            fazer_consulta2(cursor, pasin, pasta_output)
+            fazer_consulta2(cursor, conexao, pasin, pasta_output)
         elif args.consulta == 3:
             asin= input("Digite o Pid do produto desejado: ")
-            fazer_consulta3(cursor, asin, pasta_output)
+            fazer_consulta3(cursor, conexao, asin, pasta_output)
         elif args.consulta == 4:
-            fazer_consulta4(cursor, pasta_output)
+            fazer_consulta4(cursor, conexao, pasta_output)
         elif args.consulta == 5:
-            fazer_consulta5(cursor, pasta_output)
+            fazer_consulta5(cursor, conexao, pasta_output)
         elif args.consulta == 6:
-            fazer_consulta6(cursor, pasta_output)
+            fazer_consulta6(cursor, conexao, pasta_output)
         elif args.consulta == 7:
-            fazer_consulta7(cursor, pasta_output)
+            fazer_consulta7(cursor, conexao, pasta_output)
     else:
         print("Nenhuma consulta escolhida. Escolha uma consulta com um numero de 1 a 7.")
     
