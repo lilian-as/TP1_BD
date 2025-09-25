@@ -30,7 +30,7 @@ def guardaOutput(cur, conexao, consulta, arq):
         sys.exit(1)
 
 def fazer_consulta1(cursor, conexao, asin, pasta):
-    print("Q1 - Dado um produto, liste Top 5 comentarios mais uteis e com maior avaliação e os 5 comentarios mais uteis e com menor avaliação:\n")
+    print("Dado um produto, lista Top 5 comentarios mais uteis e com maior avaliação e os 5 comentarios mais uteis e com menor avaliação:\n")
 
     try:
         #top 5 com maior avaliação
@@ -66,12 +66,12 @@ def fazer_consulta1(cursor, conexao, asin, pasta):
 
 
 def fazer_consulta2(cursor, conexao, asin, pasta):
-    print("Q2 - Dado um produto, listar os produtos similares com maiores vendas (melhor salesrank) do que ele.\n")
+    print("Dado um produto, lista os produtos similares com maiores vendas do que ele.\n")
 
     try:
         comando = f"""
             SELECT tab_sim_prod.ASIN_SIM FROM SIMILAR_PRODUCT tab_sim_prod
-            JOIN PRODUCT tab_product ON tab_sim_prod.ASIM_SIM = tab_product.ASIN
+            JOIN PRODUCT tab_product ON tab_sim_prod.ASIN_SIM = tab_product.ASIN
             JOIN PRODUCT_INFO tab_prod_info ON tab_product.Pid = tab_prod_info.Pid
             WHERE tab_sim_prod.ASIN = {asin} AND tab_prod_info.salesrank > (SELECT salesrank FROM PRODUCT_INFO WHERE ASIN = {asin})
             ORDER BY tab_prod_info.salesrank DESC
@@ -87,7 +87,7 @@ def fazer_consulta2(cursor, conexao, asin, pasta):
 
 
 def fazer_consulta3(cursor, conexao, asin, pasta):
-    print("Q3 - Dado um produto, mostre a evolução diária das médias de avaliação ao longo do período coberto no arquivo\n")
+    print("Dado um produto, mostra a evolução diária das médias de avaliação ao longo do período coberto no arquivo\n")
 
     try:
         #selecionando a data e a media das avaliacoes da tabela REVIEW, onde o ASIN é igual ao dado, agrupando por data e ordenando por data
@@ -108,7 +108,7 @@ def fazer_consulta3(cursor, conexao, asin, pasta):
 
 
 def fazer_consulta4(cursor, conexao, pasta):
-    print("Q4 - Listar os 10 produtos líderes de venda em cada grupo de produtos.\n")
+    print("Lista os 10 produtos líderes de venda em cada grupo de produtos.\n")
 
     try:
         #selecionando os dados necessarios da tabela PRODUCT pra listar, ordenando por salesrank(mais vendido) de maneira decrescente
@@ -130,7 +130,7 @@ def fazer_consulta4(cursor, conexao, pasta):
 
 
 def fazer_consulta5(cursor, conexao, pasta):
-    print('Q5 -Listar os 10 produtos com a maior média de avaliações úteis positivas por produto\n')
+    print('Lista os 10 produtos com a maior média de avaliações úteis positivas por produto\n')
 
     try:
         #agrupando por pid(produto), ordenando por media de avaliacoes uteis de maneira decrescente
@@ -152,7 +152,7 @@ def fazer_consulta5(cursor, conexao, pasta):
 
 
 def fazer_consulta6(cursor, conexao, pasta):
-    print("Q6 - Listar as 5 categorias com a maior média de avaliações úteis positivas por produto\n")
+    print("Lista as 5 categorias com a maior média de avaliações úteis positivas por produto\n")
     
     try:
         comando = f"""
@@ -175,7 +175,7 @@ def fazer_consulta6(cursor, conexao, pasta):
 
 
 def fazer_consulta7(cursor, conexao, pasta):
-    print("Q7 - Listar os 10 clientes que mais fizeram comentários por grupo de produto\n")
+    print("Lista os 10 clientes que mais fizeram comentários por grupo de produto\n")
 
     try:
         #seleciona o cliente, o grupo do produto e a contagem de comentarios, agrupando por cliente e grupo do produto, ordenando por grupo do produto e total de comentarios de maneira decrescente
