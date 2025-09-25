@@ -1,17 +1,23 @@
-# Construir e subir os serviços
+# 1) Construir e subir os serviços
 
 ```
 docker compose up -d --build
 ```
 
-# Criar esquema e carregar dados
+# 2) Conferir saúde do PostgreSQL
 
 ```
-docker compose run --rm app python src/tp1_3.2.py --db-host db --db-port 5432 --db-name ecommerce --db-user postgres --db-pass postgres --input /data/snap_amazon.txt
+docker compose ps
 ```
 
-# Executar o dashboard
+# 3) Criar esquema e carregar dados
 
 ```
-docker compose run --rm app python src/tp1_3.3.py --db-host db --db-port 5432 --db-name ecommerce --db-user postgres --db-pass postgres --output /app/out.csv
+docker compose run app python src/tp1_3.2.py --db-host db --db-port 5432 --db-name ecommerce --db-user postgres --db-pass postgres --input /data/snap_amazon.txt
+```
+
+# 4) Executar o dashboard
+
+```
+docker compose run app python src/tp1_3.3.py --db-host db --db-port 5432 --db-name ecommerce --db-user postgres --db-pass postgres --output /app/out --consulta [ número da consulta ]
 ```
