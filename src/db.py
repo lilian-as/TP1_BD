@@ -6,15 +6,8 @@ def conecta(db_host, db_port, db_name, db_user, db_pass):
     conexao = None
     try:
         conexao = psycopg.connect(f"host={db_host} port={db_port} dbname={db_name} user={db_user} password={db_pass}")
-        print("Tempo para conexão:", time.time() - tempo_inicio,"seg")
+        print(f"Tempo para conexão: {time.time() - tempo_inicio:.3f} seg")
         return conexao
-
-    except ValueError as erro:
-        print("Parâmetro exigido faltando.", erro)
-    
-    except IndexError:
-        print("Valor de parâmetro exigido faltando.")
-
     except (psycopg.DatabaseError, Exception) as erro:
         print("Não foi possível conectar-se.", erro)
     

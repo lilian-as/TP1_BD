@@ -232,7 +232,7 @@ def main():
         print("Nenhuma consulta escolhida. Escolha uma consulta com um numero de 1 a 7.")
     
     fim= time.time()
-    print(f"\nTempo total de execução: {fim - inicio:.2f} segundos")
+    print(f"\nTempo total de execução: {fim - inicio:.3f} segundos")
 
     #fecha a conexao com o banco de dados
     desconecta_cursor(cursor)

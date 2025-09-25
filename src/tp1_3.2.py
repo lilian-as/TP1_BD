@@ -71,7 +71,7 @@ def criaTabelas(cur):
     try:
         for com in comando:
             cur.execute(com)
-        print("Tempo para criar o esquema:", time.time() - tempo_inicio,"seg")
+        print(f"Tempo para criar o esquema: {time.time() - tempo_inicio:.3f} seg")
         return 0
     except (psycopg.DatabaseError, Exception) as erro:
         print("Não foi possível criar o esquema.", erro)
@@ -83,7 +83,7 @@ def lerEntrada(arq_i):
     try:
         with open(arq_i, "r") as arq_i:
             linhas = arq_i.readlines()
-        print("Tempo para ler o arquivo de entrada:", time.time() - tempo_inicio,"seg")
+        print(f"Tempo para ler o arquivo de entrada: {time.time() - tempo_inicio:.3f} seg")
     except (psycopg.DatabaseError, Exception) as erro:
         print("Não foi possível ler o arquivo.", erro)
     return linhas
@@ -202,7 +202,7 @@ def povoaRelacoes(cur, linhas):
         copy_csv(cur, "PRODUCT_CAT", csv_prodcat, "/app/out/tabela_prodcat.csv", cats_lidas)
         copy_csv(cur, "REVIEW", csv_review, "/app/out/tabela_review.csv", cats_lidas)
 
-        print("Tempo para povoar relações:", time.time() - tempo_inicio,"seg")
+        print(f"Tempo para povoar relações: {time.time() - tempo_inicio:.3f} seg")
         return 0
     except (psycopg.DatabaseError, Exception) as erro:
         print("Não foi possível povoar relações.", erro)
