@@ -95,7 +95,7 @@ def fazer_consulta3(cursor, conexao, asin, pasta):
         #selecionando a data e a media das avaliacoes da tabela REVIEW, onde o ASIN é igual ao dado, agrupando por data e ordenando por data
         comando = f"""
             SELECT r.date, AVG(r.rating) OVER (ORDER BY r.date ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)
-            AS media_diaria_avaliacoes FROM REVIEW 
+            AS media_diaria_avaliacoes
             FROM REVIEW r
             JOIN PRODUCT p ON p.Pid= r.Pid
             WHERE p.ASIN = '{asin}'
