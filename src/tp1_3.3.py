@@ -96,7 +96,7 @@ def fazer_consulta3(cursor, conexao, asin, pasta):
         comando = f"""
             SELECT r.date, AVG(r.rating) AS media_diaria_avaliacoes FROM REVIEW r
             JOIN PRODUCT p ON p.Pid = r.Pid
-            WEHERE p.ASIN = '{asin}'
+            WHERE p.ASIN = '{asin}'
             GROUP BY r.date
             ORDER BY r.date
         """
