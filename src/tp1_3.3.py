@@ -94,12 +94,13 @@ def fazer_consulta3(cursor, conexao, asin, pasta):
     try:
         #selecionando a data e a media das avaliacoes da tabela REVIEW, onde o ASIN é igual ao dado, agrupando por data e ordenando por data
         comando = f"""
-            SELECT r.date, AVG(r.rating) AS media_diaria_avaliacoes FROM REVIEW r
-            JOIN PRODUCT p ON p.Pid = r.Pid
+            SELECT r.date, AVG(r.rating) OVER (ORDER BY r.date ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)
+            AS media_diaria_avaliacoes FROM REVIEW 
+            FROM REVIEW r
+            JOIN PRODUCT p ON p.Pid= r.Pid
             WHERE p.ASIN = '{asin}'
-            GROUP BY r.date
             ORDER BY r.date
-        """
+        """ 
         cursor.execute(comando)
         if pasta:
             guardaOutput(cursor, conexao, comando, f"{pasta}/q3_avg_evolution.csv")
@@ -114,14 +115,19 @@ def fazer_consulta4(cursor, conexao, pasta):
     print("Lista os 10 produtos líderes de venda em cada grupo de produtos.\n")
 
     try:
-        #selecionando os dados necessarios da tabela PRODUCT pra listar, ordenando por salesrank(mais vendido) de maneira decrescente
         comando = f"""
-            SELECT tab_product.ASIN, tab_prod_info.title, tab_prod_info.p_group, tab_prod_info.salesrank 
-            FROM PRODUCT tab_product
-            JOIN PRODUCT_INFO tab_prod_info ON tab_product.Pid = tab_prod_info.Pid
-            ORDER BY tab_prod_info.salesrank DESC
-            LIMIT 10
+            WITH ProdutosRankeados AS (
+                SELECT tab_product.ASIN, tab_prod_info.title, tab_prod_info.p_group, tab_prod_info.salesrank,
+                ROW_NUMBER() OVER (PARTITION BY tab_prod_info.p_group ORDER BY tab_prod_info.salesrank ASC) AS rn    
+                FROM PRODUCT tab_product
+                JOIN PRODUCT_INFO tab_prod_info ON tab_product.Pid = tab_prod_info.Pid
+            )
+            SELECT ASIN, title, p_group, salesrank
+            FROM ProdutosRankeados
+            WHERE rn <= 10
+            ORDER BY p_group, salesrank;
         """
+        
         cursor.execute(comando)
         if pasta:
             guardaOutput(cursor, conexao, comando, f"{pasta}/q4_top10_salesrank.csv")
@@ -181,15 +187,20 @@ def fazer_consulta7(cursor, conexao, pasta):
     print("Lista os 10 clientes que mais fizeram comentários por grupo de produto\n")
 
     try:
-        #seleciona o cliente, o grupo do produto e a contagem de comentarios, agrupando por cliente e grupo do produto, ordenando por grupo do produto e total de comentarios de maneira decrescente
         comando = f"""
-            SELECT tab_review.cutomer, tab_prod_info.p_group, COUNT(*) as total_comentarios
-            FROM REVIEW AS tab_review
-            JOIN PRODUCT_INFO AS tab_prod_info ON tab_review.Pid= tab_prod_info.Pid
-            GROUP BY tab_review.cutomer, tab_prod_info.p_group
-            ORDER BY tab_prod_info.p_group, total_comentarios DESC
-            LIMIT 10
+            WITH ClientesRankeados AS (
+                SELECT tab_review.customer, tab_prod_info.p_group, COUNT(*) as total_comentarios
+                ROW_NUMBER() OVER (PARTITION BY tab_prod_info.p_group ORDER BY COUNT(*) DESC) AS rn    
+                FROM REVIEW AS tab_review
+                JOIN PRODUCT_INFO AS tab_prod_info ON tab_review.Pid= tab_prod_info.Pid
+                GROUP BY tab_review.customer, tab_prod_info.p_group
+            )
+           SELECT customer, p_group, total_comentarios
+            FROM ClientesRankeados
+            WHERE rn <= 10
+            ORDER BY p_group, total_comentarios DESC;
         """
+        
         cursor.execute(comando)
 
         if pasta:
