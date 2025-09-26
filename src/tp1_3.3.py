@@ -138,7 +138,7 @@ def fazer_consulta5(cursor, conexao, pasta):
     try:
         #agrupando por pid(produto), ordenando por media de avaliacoes uteis de maneira decrescente
         comando = f"""
-            SELECT tab_review.Pid, AVG(tab_review.helpul) as media_avaliacoes_uteis
+            SELECT tab_review.Pid, AVG(tab_review.helpful) as media_avaliacoes_uteis
             FROM REVIEW tab_review
             GROUP BY tab_review.Pid
             ORDER BY media_avaliacoes_uteis DESC
@@ -159,7 +159,7 @@ def fazer_consulta6(cursor, conexao, pasta):
     
     try:
         comando = f"""
-            SELECT tab_category.cat_nome, AVG(tab_review.helpul) as media_avaliacoes_uteis
+            SELECT tab_category.cat_nome, AVG(tab_review.helpful) as media_avaliacoes_uteis
             FROM REVIEW as tab_review
             JOIN PRODUCT_CAT AS tab_prod_cat ON tab_review.Pid= tab_prod_cat.Pid
             JOIN CATEGORY AS tab_category ON tab_prod_cat.id.final_cat= tab_category.cat_id
