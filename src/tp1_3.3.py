@@ -189,13 +189,13 @@ def fazer_consulta7(cursor, conexao, pasta):
     try:
         comando = f"""
             WITH ClientesRankeados AS (
-                SELECT tab_review.customer, tab_prod_info.p_group, COUNT(*) as total_comentarios
+                SELECT tab_review.cutomer, tab_prod_info.p_group, COUNT(*) as total_comentarios,
                 ROW_NUMBER() OVER (PARTITION BY tab_prod_info.p_group ORDER BY COUNT(*) DESC) AS rn    
                 FROM REVIEW AS tab_review
                 JOIN PRODUCT_INFO AS tab_prod_info ON tab_review.Pid= tab_prod_info.Pid
-                GROUP BY tab_review.customer, tab_prod_info.p_group
+                GROUP BY tab_review.cutomer, tab_prod_info.p_group
             )
-           SELECT customer, p_group, total_comentarios
+           SELECT cutomer, p_group, total_comentarios
             FROM ClientesRankeados
             WHERE rn <= 10
             ORDER BY p_group, total_comentarios DESC;
@@ -204,7 +204,7 @@ def fazer_consulta7(cursor, conexao, pasta):
         cursor.execute(comando)
 
         if pasta:
-            guardaOutput(cursor, conexao, comando, f"{pasta}/q7_top10_customer_reviews_pos.csv")
+            guardaOutput(cursor, conexao, comando, f"{pasta}/q7_top10_cutomer_reviews_pos.csv")
         else:
             for row in cursor.fetchall():
                 print(row)
