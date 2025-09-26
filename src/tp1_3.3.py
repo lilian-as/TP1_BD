@@ -198,7 +198,7 @@ def fazer_consulta7(cursor, conexao, pasta):
            SELECT cutomer, p_group, total_comentarios
             FROM ClientesRankeados
             WHERE rn <= 10
-            ORDER BY p_group, total_comentarios DESC;
+            ORDER BY p_group, total_comentarios DESC
         """
         
         cursor.execute(comando)
