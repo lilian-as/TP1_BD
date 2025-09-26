@@ -125,7 +125,7 @@ def fazer_consulta4(cursor, conexao, pasta):
             SELECT ASIN, title, p_group, salesrank
             FROM ProdutosRankeados
             WHERE rn <= 10
-            ORDER BY p_group, salesrank;
+            ORDER BY p_group, salesrank
         """
         
         cursor.execute(comando)
