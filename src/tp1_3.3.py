@@ -73,9 +73,9 @@ def fazer_consulta2(cursor, conexao, asin, pasta):
             SELECT tab_sim_prod.ASIN_SIM FROM SIMILAR_PRODUCT tab_sim_prod
             JOIN PRODUCT p_sim ON p_sim.ASIN = tab_sim_prod.ASIN_SIM
             JOIN PRODUCT_INFO pi_sim ON p_sim.Pid = p_sim.Pid
-            WHERE tab_sim_prod.Pid= (SELECT p.Pid FROM PRODUCT p WHERE p.ASIN = {asin}) AND pi_sim.salesrank > (SELECT pi.salesrank FROM PRODUCT_INFO pi 
+            WHERE tab_sim_prod.Pid= (SELECT p.Pid FROM PRODUCT p WHERE p.ASIN = '{asin}') AND pi_sim.salesrank > (SELECT pi.salesrank FROM PRODUCT_INFO pi 
             JOIN PRODUCT p ON p.PId= pi.Pid
-            WHERE p.ASIN = {asin})
+            WHERE p.ASIN = '{asin}')
             ORDER BY pi_sim.salesrank DESC
         """
         cursor.execute(comando)
@@ -95,7 +95,7 @@ def fazer_consulta3(cursor, conexao, asin, pasta):
         #selecionando a data e a media das avaliacoes da tabela REVIEW, onde o ASIN é igual ao dado, agrupando por data e ordenando por data
         comando = f"""
             SELECT r.date, AVG(r.rating) AS media_diaria_avaliacoes FROM REVIEW
-            WHERE REVIEW.ASIN = {asin}
+            WHERE REVIEW.ASIN = '{asin}'
             GROUP BY REVIEW.date
             ORDER BY REVIEW.date
         """
