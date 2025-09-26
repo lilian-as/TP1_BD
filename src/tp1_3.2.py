@@ -27,7 +27,7 @@ def criaTabelas(cur, conexao):
         """CREATE TABLE PRODUCT_INFO(
         Pid INT PRIMARY KEY REFERENCES PRODUCT(Pid) ON DELETE CASCADE,
         title VARCHAR(500),
-        p_group VARCHAR(10),
+        p_group VARCHAR(12),
         salesrank INT,
         p_similar INT,
         categories INT,
@@ -133,7 +133,6 @@ def povoaRelacoes(cur, conexao, linhas):
                 titulo = titulo.strip('\n')
                 titulo = titulo.replace('"', '""')
                 titulo = titulo.replace(',', '","')
-                titulo = titulo.replace("'", "''")
             elif "group:" in l:
                 group = linha[1]
             elif "salesrank:" in l:
@@ -161,7 +160,6 @@ def povoaRelacoes(cur, conexao, linhas):
                         i_cochete += cat.index('[')
                         cat_nome = cat[:i_cochete+1]
                     cat_nome = cat_nome.replace(',', '","')
-                    cat_nome = cat_nome.replace("'", "''")
                     #A inserir
                     csv_category += [f"{cat_id},{cat_nome},{pcat_id}\n"]
                     pcat_id = cat_id
@@ -217,6 +215,12 @@ def povoaRelacoes(cur, conexao, linhas):
 #Estabelece a conexão com o postgreSQL
 args = parse_args()
 
+if args.input:
+    arq = args.input
+else:
+    print("Falta arquivo de entrada.")
+    sys.exit(1)
+
 conexao= conecta(args.db_host, args.db_port, args.db_name, args.db_user, args.db_pass)
 if conexao == None:
     sys.exit(1)
@@ -225,7 +229,7 @@ cursor = conexao.cursor()
 #Criando o esquema e povoando
 status = criaTabelas(cursor, conexao)
 if status == 0:
-    entrada = lerEntrada(args.input)
+    entrada = lerEntrada(arq)
     status = povoaRelacoes(cursor, conexao, entrada)
 
 #Encerra conexão

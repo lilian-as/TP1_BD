@@ -37,8 +37,8 @@ def fazer_consulta1(cursor, conexao, asin, pasta):
         #selecionando todos os dados da tabela REVIEW, juntando com a tabela PRODUCT para pegar o Pid, onde o Pid é igual ao dado e a avaliação é 5, ordenando por comentarios uteis de maneira decrescente, limite de 5 comentarios
         comando1 = f"""
             SELECT DATE,cutomer,rating,votes,helpful FROM REVIEW NATURAL INNER JOIN PRODUCT
-            WHERE PRODUCT.ASIN = '{asin}' AND REVIEW.rating >= 4
-            ORDER BY helpful DESC 
+            WHERE PRODUCT.ASIN = '{asin}'
+            ORDER BY rating DESC, helpful DESC 
             LIMIT 5
         """
         cursor.execute(comando1)
@@ -51,8 +51,8 @@ def fazer_consulta1(cursor, conexao, asin, pasta):
         #selecionando todos os dados da tabela REVIEW, juntando com a tabela PRODUCT para pegar o Pid, onde o Pid é igual ao dado e a avaliação é 1, ordenando por comentarios uteis de maneira decrescente, limite de 5 comentarios
         comando2 = f"""
             SELECT DATE,cutomer,rating,votes,helpful FROM REVIEW NATURAL INNER JOIN PRODUCT
-            WHERE PRODUCT.ASIN = '{asin}' AND REVIEW.rating = 1
-            ORDER BY helpful DESC 
+            WHERE PRODUCT.ASIN = '{asin}'
+            ORDER BY rating ASC, helpful DESC 
             LIMIT 5
         """
         cursor.execute(comando2)
@@ -70,7 +70,7 @@ def fazer_consulta2(cursor, conexao, asin, pasta):
 
     try:
         comando = f"""
-            SELECT tab_sim_prod.ASIN_SIM FROM SIMILAR_PRODUCT tab_sim_prod
+            SELECT tab_sim_prod.ASIN_SIM, tab_prod_info.salesrank FROM SIMILAR_PRODUCT tab_sim_prod
             JOIN PRODUCT tab_product ON tab_sim_prod.ASIN_SIM = tab_product.ASIN
             JOIN PRODUCT_INFO tab_prod_info ON tab_product.Pid = tab_prod_info.Pid
             WHERE tab_sim_prod.Pid = (SELECT Pid FROM PRODUCT WHERE ASIN = '{asin}') AND tab_prod_info.salesrank > (SELECT salesrank FROM PRODUCT_INFO WHERE Pid = (SELECT Pid FROM PRODUCT WHERE ASIN = '{asin}'))
@@ -92,12 +92,12 @@ def fazer_consulta3(cursor, conexao, asin, pasta):
     try:
         #selecionando a data e a media das avaliacoes da tabela REVIEW, onde o ASIN é igual ao dado, agrupando por data e ordenando por data
         comando = f"""
-            SELECT r.date, AVG(r.rating) OVER (ORDER BY r.date ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)
+            SELECT REVIEW.date, AVG(REVIEW.rating) OVER (ORDER BY REVIEW.date ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)
             AS media_diaria_avaliacoes
-            FROM REVIEW r
-            JOIN PRODUCT p ON p.Pid= r.Pid
-            WHERE p.ASIN = '{asin}'
-            ORDER BY r.date
+            FROM REVIEW
+            JOIN PRODUCT ON PRODUCT.Pid= REVIEW.Pid
+            WHERE PRODUCT.ASIN = '{asin}'
+            ORDER BY REVIEW.date
         """ 
         cursor.execute(comando)
         if pasta:
