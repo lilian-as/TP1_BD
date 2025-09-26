@@ -162,7 +162,7 @@ def fazer_consulta6(cursor, conexao, pasta):
             SELECT tab_category.cat_nome, AVG(tab_review.helpful) as media_avaliacoes_uteis
             FROM REVIEW as tab_review
             JOIN PRODUCT_CAT AS tab_prod_cat ON tab_review.Pid= tab_prod_cat.Pid
-            JOIN CATEGORY AS tab_category ON tab_prod_cat.id.final_cat= tab_category.cat_id
+            JOIN CATEGORY AS tab_category ON tab_prod_cat.id_final_cat= tab_category.cat_id
             GROUP BY tab_category.cat_nome
             ORDER BY media_avaliacoes_uteis DESC
             LIMIT 5
