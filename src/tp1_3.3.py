@@ -71,12 +71,10 @@ def fazer_consulta2(cursor, conexao, asin, pasta):
     try:
         comando = f"""
             SELECT tab_sim_prod.ASIN_SIM FROM SIMILAR_PRODUCT tab_sim_prod
-            JOIN PRODUCT p_sim ON p_sim.ASIN = tab_sim_prod.ASIN_SIM
-            JOIN PRODUCT_INFO pi_sim ON p_sim.Pid = p_sim.Pid
-            WHERE tab_sim_prod.Pid= (SELECT p.Pid FROM PRODUCT p WHERE p.ASIN = '{asin}') AND pi_sim.salesrank > (SELECT pi.salesrank FROM PRODUCT_INFO pi 
-            JOIN PRODUCT p ON p.PId= pi.Pid
-            WHERE p.ASIN = '{asin}')
-            ORDER BY pi_sim.salesrank DESC
+            JOIN PRODUCT tab_product ON tab_sim_prod.ASIN_SIM = tab_product.ASIN
+            JOIN PRODUCT_INFO tab_prod_info ON tab_product.Pid = tab_prod_info.Pid
+            WHERE tab_sim_prod.Pid = (SELECT Pid FROM PRODUCT WHERE ASIN = '{asin}') AND tab_prod_info.salesrank > (SELECT salesrank FROM PRODUCT_INFO WHERE Pid = (SELECT Pid FROM PRODUCT WHERE ASIN = '{asin}'))
+            ORDER BY tab_prod_info.salesrank DESC
         """
         cursor.execute(comando)
         if pasta:
